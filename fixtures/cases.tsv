@@ -1,0 +1,42 @@
+# id	kind	proxy (TSV escapes)	hand_pre	hand_post
+# Labels derived by hand from creds.go old 384-386 / new 115-153, 361-370, 489 (see README)
+p01_advisory_quote_break	pos	socks5://evil'$(id>argocd-ssh-proxy-poc-id)'host:1080	L1_INJECTION	REJECTED
+p02_semicolon	pos	socks5://host;id:1080	L2_ONLY	REJECTED
+p03_dollar_paren	pos	socks5://host$(x):1080	L2_ONLY	REJECTED
+p04_ampersand	pos	socks5://host&id:1080	L2_ONLY	REJECTED
+p05_quote_semicolons	pos	socks5://a';id;'b:1080	L1_INJECTION	REJECTED
+p06_redirect_gt	pos	socks5://host>x:1080	L2_ONLY	REJECTED
+p07_redirect_lt	pos	socks5://host<x:1080	L2_ONLY	REJECTED
+p08_http_scheme_quote	pos	http://h'$(id)'x:1080	L1_INJECTION	REJECTED
+p09_double_quote	pos	socks5://h"x:1080	L2_ONLY	REJECTED
+p10_paren_only	pos	socks5://h(x):1080	L2_ONLY	REJECTED
+n01_ipv4	neg	socks5://127.0.0.1:1080	CLEAN	CLEAN
+n02_hostname	neg	socks5://proxy.example.com:1080	CLEAN	CLEAN
+n03_ipv6	neg	socks5://[::1]:1080	CLEAN	CLEAN
+n04_socks5h	neg	socks5h://proxy.internal:9050	CLEAN	CLEAN
+n05_port_max	neg	socks5://proxy.example.com:65535	CLEAN	CLEAN
+n06_port_one	neg	socks5://proxy.example.com:1	CLEAN	CLEAN
+n07_userinfo	neg	socks5://user:password@127.0.0.1:1080	CLEAN	CLEAN
+n08_no_proxy	neg		NO_PROXY	NO_PROXY
+n09_ipv4_mapped	neg	socks5://[::ffff:1.2.3.4]:1080	CLEAN	CLEAN
+n10_leading_zero_port	neg	socks5://1.2.3.4:01080	CLEAN	CLEAN
+e01_port_zero	edge	socks5://host:0	CLEAN	REJECTED
+e02_port_high	edge	socks5://host:65536	CLEAN	REJECTED
+e03_empty_host	edge	socks5://:1080	CLEAN	REJECTED
+e04_no_port	edge	socks5://host	CLEAN	REJECTED
+e05_missing_scheme	edge	:invalid-proxy-url	ENV_ERROR	REJECTED
+e06_backtick	edge	socks5://host`x`:1080	ENV_ERROR	REJECTED
+e07_space	edge	socks5://ho st:1080	ENV_ERROR	REJECTED
+e08_newline_port	edge	socks5://host:\n1080	ENV_ERROR	REJECTED
+e09_socks4	edge	socks4://host:1080	CLEAN	REJECTED
+e10_pipe	edge	socks5://host|id:1080	ENV_ERROR	REJECTED
+e11_colon_host	edge	socks5://a:b:1080	CLEAN	REJECTED
+e12_bracket_semicolon	edge	socks5://[::1;id]:1080	ENV_ERROR	REJECTED
+e13_opaque	edge	socks5:host:1080	CLEAN	REJECTED
+e14_no_scheme_colon	edge	host;id:1080	ENV_ERROR	REJECTED
+e15_https_clean	edge	https://host:1080	CLEAN	REJECTED
+e16_slash_cuts_authority	edge	socks5://evil'$(id>/tmp/x)'host:1080	L1_INJECTION	REJECTED
+e17_http_two_colons	edge	http://a:b:1080	ENV_ERROR	REJECTED
+e18_bracket_ipv4	edge	socks5://[1.2.3.4]:1080	ENV_ERROR	REJECTED
+e19_bracket_mid	edge	socks5://a[b:1080	ENV_ERROR	REJECTED
+b01_percent	bad	socks5://h%41:1080	BAD_INPUT	BAD_INPUT
